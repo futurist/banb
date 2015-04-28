@@ -1,0 +1,86 @@
+<style>
+body,html{
+    height: 100%;
+}
+#can{
+    height: 100%;
+    width:100%;
+    overflow: hidden;
+}
+</style>
+<canvas id="drawsomething"></canvas>
+<div id="can">
+    <img id="canImg" style="margin-left:0" src="http://s.cn.bing.net/az/hprichbg/rb/UrsusMaritimus_ZH-CN9497747141_1920x1080.jpg">
+</div>
+<script src="http://1111hui.com/js/jquery.js"></script>
+<script>
+var websocket = new WebSocket('ws://192.168.8.115:8888/chat?abc=3', "abc.com" );
+
+//websocket.binaryType = "blob";
+websocket.onopen = function (event){
+    var msg = new Uint32Array([17, -45.3]);
+    websocket.send("msg "+window.navigator.userAgent, function ack(error) {} );
+};
+websocket.onclose = function (closeE){
+    //console.log(closeE.reason, closeE.code, closeE.wasClean);
+};
+websocket.onmessage = function (e){
+    console.log(e.data);
+};
+websocket.onerror = function (e){
+    console.log(e);
+};
+
+
+
+
+window.requestAnimFrame = (function(callback) {
+  return window.requestAnimationFrame || window.webkitRequestAnimationFrame || window.mozRequestAnimationFrame || window.oRequestAnimationFrame || window.msRequestAnimationFrame ||
+  function(callback) {
+    window.setTimeout(callback, 1000 / 60);
+  };
+})();
+
+
+function toJSON(temp1){
+    var str={}; for(i in temp1){  if(typeof temp1[i]!='object') str[i]=temp1[i] }
+    return JSON.stringify(str);
+}
+
+
+var fps = 100;
+var velo = 11;
+function draw() {
+    setTimeout(function() {
+        requestAnimFrame(draw);
+        var left = parseFloat($("#canImg").css("margin-left"));
+        console.log(left, velo);
+        $("#canImg").css("margin-left", left+velo );
+    }, 100 / fps);
+};
+draw();
+
+window.addEventListener('devicemotion', deviceMotionHandler, false);
+
+function deviceMotionHandler(eventData) {
+
+
+    // 获取含重力的加速度
+    var acc = eventData.accelerationIncludingGravity; 
+    // 获取当前时间
+    console.log( toJSON(acc) );
+    //websocket.send(toJSON(acceleration));
+    if( Math.abs(acc.x) >1){
+        velo = acc.x*1.5;
+    }else{
+        velo = 0;
+    }
+}
+
+window.addEventListener("deviceorientation", function(event) {
+          // process event.alpha, event.beta and event.gamma
+          console.log(toJSON(event) );
+          websocket.send(toJSON(event));
+      }, true);
+</script>
+
